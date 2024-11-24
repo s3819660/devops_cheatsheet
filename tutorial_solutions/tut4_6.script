@@ -1,0 +1,109 @@
+#!/bin/bash 
+
+
+# Switch to root user 
+# sudo su -
+
+# Install Java 
+echo "Installing Java..."
+yum install java-17-amazon-corretto -y
+
+# Install maven 
+cd /opt
+wget https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz
+tar -xvzf apache-maven-3.9.9-bin.tar.gz
+mv apache-maven-3.9.9 maven
+
+# Add PATH 
+cd ~ 
+
+echo 'M2_HOME=/opt/maven
+M2=/opt/maven/bin
+JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto.x86_64 
+
+PATH=$PATH:$HOME/bin:$JAVA_HOME:$M2_HOME:$M2 
+
+export PATH' >> .bash_profile
+
+source .bash_profile 
+
+# Install tomcat 
+
+cd /opt 
+
+wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.97/bin/apache-tomcat-9.0.97.tar.gz 
+
+tar -xvzf apache-tomcat-9.0.97.tar.gz 
+
+mv apache-tomcat-9.0.97 tomcat 
+
+# Configure tomcat  
+
+# cp /opt/tomcat/webapps/docs/META-INF/context.xml /opt/tomcat/webapps/docs/META-INF/context.xml.BACKUP 
+
+# cp /opt/tomcat/webapps/examples/META-INF/context.xml /opt/tomcat/webapps/examples/META-INF/context.xml.BACKUP 
+
+# cp /opt/tomcat/webapps/host-manager/META-INF/context.xml /opt/tomcat/webapps/host-manager/META-INF/context.xml.BACKUP 
+
+# cp /opt/tomcat/webapps/manager/META-INF/context.xml /opt/tomcat/webapps/manager/META-INF/context.xml.BACKUP 
+
+  
+
+sed -i '/<Valve/,/>/d' /opt/tomcat/webapps/docs/META-INF/context.xml 
+
+sed -i '/<Valve/,/>/d' /opt/tomcat/webapps/examples/META-INF/context.xml 
+
+sed -i '/<Valve/,/>/d' /opt/tomcat/webapps/host-manager/META-INF/context.xml 
+
+sed -i '/<Valve/,/>/d' /opt/tomcat/webapps/manager/META-INF/context.xml 
+
+  
+
+# Configure tomcat users 
+
+cd /opt/tomcat/conf 
+
+echo '<role rolename="admin-gui"/>
+<role rolename="manager-gui"/>
+<role rolename="manager-script"/>
+<role rolename="manager-jmx"/>
+<role rolename="manager-status"/>
+<user username="admin" password="s3cret" roles="admin-gui,manager-gui,manager-script,manager-jmx,manager-status"/>' > /tmp/new_content.xml
+
+sed -i '/version="1.0">/r /tmp/new_content.xml' /opt/tomcat/conf/tomcat-users.xml
+
+
+ 
+
+#run tomcat 
+
+cd /opt/tomcat/bin 
+
+./startup.sh 
+
+  
+
+# Create Java project
+source ~/.bash_profile 
+cd ~
+echo $PATH
+mvn archetype:generate -DgroupId=vn.edu.rmit -DartifactId=helloWorld -DarchetypeArtifactId=maven-archetype-webapp -DinteractiveMode=false
+echo '<h3>this is my text</h3>' > /tmp/jsp_content.xml
+sed -i '/<h2>/r /tmp/jsp_content.xml' ~/helloWorld/src/main/webapp/index.jsp
+
+# Clean, build and copy artifact to tomcat repository 
+source ~/.bash_profile
+cd ~/helloWorld
+mvn package
+
+cp ~/helloWorld/target/helloWorld.war /opt/tomcat/webapps/
+  
+
+# Start up tomcat 
+ln -s /opt/tomcat/bin/startup.sh /usr/local/bin/tomcatup
+ln -s /opt/tomcat/bin/shutdown.sh /usr/local/bin/tomcatdown
+
+#sed 's/port="8080"/port="80"/g' /opt/tomcat/conf/server.xml # this doesn't work
+
+tomcatdown
+tomcatup
