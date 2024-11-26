@@ -1,8 +1,109 @@
-#!/bin/bash 
+#!/bin/bash  
+
+# add to solve Maven error Cannot access defaults field of Properties
+#<build>
+        # <!-- To define the plugin version in your parent POM -->
+        # <pluginManagement>
+        # <plugins>
+        #     <plugin>
+        #     <groupId>org.apache.maven.plugins</groupId>
+        #     <artifactId>maven-war-plugin</artifactId>
+        #     <version>3.4.0</version>
+        #     </plugin>
+        # </plugins>
+        # </pluginManagement>
+        # </build>
+
+srcBashProfile() {
+    if ! echo $PATH | grep -q "maven"; then
+      source ~/.bash_profile
+    fi
+}
+
+addPath() {
+    if ! echo $PATH | grep -q "maven"; then
+      echo 'M2_HOME=/opt/maven
+M2=/opt/maven/bin
+JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto.x86_64
+
+PATH=$PATH:$HOME/bin:$JAVA_HOME:$M2_HOME:$M2
+export PATH' >> .bash_profile
+    fi
+}
 
 # Install Java
-if ! yum install java-17-amazon-corretto; then
-    echo "Failed to install Java"
-    
+if ! yum install java-17-amazon-corretto -y; then
+    echo 'Failed to install Java'
+    exit 1
+fi
 
+# Install Maven
+cd /opt 
+wget https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz
+if ! tar -xvzf apache-maven-3.8.8-bin.tar.gz; then
+    echo 'Failed to unzip maven'
+    exit 1
+fi
+mv apache-maven-3.8.8 maven
 
+# Add PATH
+cd ~
+addPath
+
+source .bash_profile
+
+if ! echo $PATH | grep -q 'maven'; then
+    echo 'Failed to add PATH'
+    exit 1
+fi
+
+# Install tomcat
+cd /opt
+wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.97/bin/apache-tomcat-9.0.97.tar.gz
+if ! tar -xvzf apache-tomcat-9.0.97.tar.gz; then
+    echo 'Failed to unzip tomcat'
+    exit 1
+fi
+
+mv apache-tomcat-9.0.97 tomcat
+
+# Configure tomcat access
+sed -i '/<Valve/s/^/<!-- /' /opt/tomcat/webapps/docs/META-INF/context.xml
+sed -i '/allow="127\\.\\d/s/$/ -->/' /opt/tomcat/webapps/docs/META-INF/context.xml
+sed -i '/<Valve/s/^/<!-- /' /opt/tomcat/webapps/examples/META-INF/context.xml
+sed -i '/allow="127\\.\\d/s/$/ -->/' /opt/tomcat/webapps/examples/META-INF/context.xml
+sed -i '/<Valve/s/^/<!-- /' /opt/tomcat/webapps/host-manager/META-INF/context.xml
+sed -i '/allow="127\\.\\d/s/$/ -->/' /opt/tomcat/webapps/host-manager/META-INF/context.xml
+sed -i '/<Valve/s/^/<!-- /' /opt/tomcat/webapps/manager/META-INF/context.xml
+sed -i '/allow="127\\.\\d/s/$/ -->/' /opt/tomcat/webapps/manager/META-INF/context.xml
+
+# Configure tomcat users
+cd /opt/tomcat/conf
+echo '<role rolename="admin-gui"/>
+<role rolename="manager-gui"/>
+<role rolename="manager-script"/>
+<role rolename="manager-jmx"/>
+<role rolename="manager-status"/>
+<user username="admin" password="s3cret" roles="admin-gui,manager-gui, manager-script, manager-jmx, manager-status"/>' > /tmp/tomcatu_content.xml
+
+sed -i '/version="1.0">/r /tmp/tomcatu_content.xml' tomcat-users.xml
+
+# Symbolic links
+ln -s /opt/tomcat/bin/startup.sh /usr/local/bin/tomcatup
+ln -s /opt/tomcat/bin/shutdown.sh /usr/local/bin/tomcatdown
+
+# Generate java project
+cd ~
+srcBashProfile
+mvn archetype:generate -DgroupId=vn.edu.rmit -DartifactId=helloWorld -DarchetypeArtifactId=maven-archetype-webapp -DinteractiveMode=false
+
+echo '<h3>I want to die</h3>' > /tmp/jsp_content.txt
+sed -i '/<h2>/r /tmp/jsp_content.txt' ~/helloWorld/src/main/webapp/index.jsp
+
+cd ~/helloWorld
+srcBashProfile
+mvn package
+cp ~/helloWorld/target/helloWorld.war /opt/tomcat/webapps
+
+tomcatdown
+tomcatup

@@ -78,7 +78,7 @@ sed -i '/version="1.0">/r /tmp/tomcatu_content.xml' tomcat-users.xml
 
 # Generate Java project
 cd ~
-if ! echo $PATH | grep -q "M2_HOME"; then
+if ! echo $PATH | grep -q "maven"; then
     source ~/.bash_profile
 fi
 
@@ -87,7 +87,7 @@ echo '<h3>I added this line</h3>' > /tmp/jsp_content.txt
 sed -i '/<h2>/r /tmp/jsp_content.txt' ~/helloWorld/src/main/webapp/index.jsp
 
 
-if ! echo $PATH | grep -q "M2_HOME"; then
+if ! echo $PATH | grep -q "maven"; then
     source ~/.bash_profile
 fi
 cd ~/helloWorld

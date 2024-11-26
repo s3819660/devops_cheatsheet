@@ -10,6 +10,7 @@ bobby() {
         exit 0
     else
         echo "You should enter a random word!"
+        exit 1
     fi
 }
 
