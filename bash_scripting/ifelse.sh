@@ -6,11 +6,11 @@ bobby() {
         echo "Hello $name"
         exit 0
     elif ! [[ name ]]; then
-        echo "Howdy, I am Bobby"
-        exit 0
-    else
         echo "You should enter a random word!"
         exit 1
+    else
+        echo "Howdy, I am Bobby"
+        exit 0
     fi
 }
 

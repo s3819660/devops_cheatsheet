@@ -1,0 +1,91 @@
+#!/bin/bash
+
+srcBashProfile() {
+    if ! echo $PATH | grep -q 'maven'; then
+        source ~/.bashrc
+    fi
+}
+
+addPath() {
+    cd ~
+    echo 'M2_HOME=/opt/maven
+M2=/opt/maven/bin
+JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto.x86_64
+
+PATH=$PATH:$HOME/bin:$JAVA_HOME:$M2_HOME:$M2
+export PATH' >> ~/.bashrc
+}
+
+# Install Java
+if ! sudo yum install java-17-amazon-corretto -y; then
+    echo 'Failed to install Java'
+    exit 1
+fi
+
+# Install Maven
+cd /opt
+wget https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz
+tar -xvzf apache-maven-3.9.9-bin.tar.gz         # unzip
+mv apache-maven-3.9.9 maven                     # rename
+
+
+# Add PATH
+addPath
+cd ~
+source .bashrc
+
+
+# Install Tomcat
+cd /opt
+wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.97/bin/apache-tomcat-9.0.97.tar.gz
+tar -xvzf apache-tomcat-9.0.97.tar.gz
+mv apache-tomcat-9.0.97 tomcat
+
+# Symbolic links
+ln -s /opt/tomcat/bin/startup.sh /usr/local/bin/tomcatup
+ln -s /opt/tomcat/bin/shutdown.sh /usr/local/bin/tomcatdown
+
+# Start tomcat server
+tomcatup
+
+# Configure Tomcat
+sed -i '/<Valve/s/^/<!-- /' /opt/tomcat/webapps/host-manager/META-INF/context.xml
+sed -i '/allow="127/s/$/ -->/' /opt/tomcat/webapps/host-manager/META-INF/context.xml
+sed -i '/<Valve/s/^/<!-- /' /opt/tomcat/webapps/manager/META-INF/context.xml
+sed -i '/allow="127/s/$/ -->/' /opt/tomcat/webapps/manager/META-INF/context.xml
+sed -i '/<Valve/s/^/<!-- /' /opt/tomcat/webapps/docs/META-INF/context.xml
+sed -i '/allow="127/s/$/ -->/' /opt/tomcat/webapps/docs/META-INF/context.xml
+sed -i '/<Valve/s/^/<!-- /' /opt/tomcat/webapps/examples/META-INF/context.xml
+sed -i '/allow="127/s/$/ -->/' /opt/tomcat/webapps/examples/META-INF/context.xml
+
+echo '<role rolename="admin-gui"/>
+<role rolename="manager-gui"/>
+<role rolename="manager-script"/>
+<role rolename="manager-jmx"/>
+<role rolename="manager-status"/>
+<user username="admin" password="s3cret" roles="admin-gui,manager-gui, manager-script, manager-jmx, manager-status"/>' > /tmp/tomcatu_content.xml
+sed -i '/version="1.0">/r /tmp/tomcatu_content.xml' /opt/tomcat/conf/tomcat-users.xml
+
+
+tomcatdown
+tomcatup
+
+
+
+# Generate Java Project
+cd ~
+mvn archetype:generate -DgroupId=vn.edu.rmit -DartifactId=helloWorld -DarchetypeArtifactId=maven-archetype-webapp -DinteractiveMode=false
+
+echo '<h3>Bobby loves ice cream</h3>' > /tmp/jsp_content.txt
+sed -i '/<h2>/r /tmp/jsp_content.txt' ~/helloWorld/src/main/webapp/index.jsp
+
+cd ~/helloWorld
+mvn package
+
+cp ~/helloWorld/target/helloWorld.war /opt/tomcat/webapps/
+
+tomcatdown
+tomcatup
+
+
+
