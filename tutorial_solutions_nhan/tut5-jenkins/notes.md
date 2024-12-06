@@ -16,20 +16,20 @@
 - Build maven project: add GitHub repo -> setup Maven build steps -> add Tomcat server info as container -> build
 
 4. Auto deployment:
-   a. From Jenkins server
-
+a. From Jenkins server
 - Setup Poll SCM schedule on Jenkins
-  b. From GitHub repo
+
+b. From GitHub repo
 - Create Webhooks -> add Jenkins server's url/github-webhook/
 - Add GitHub plugin on Jenkins (optional)
 - Enable GitHub hook trigger in Jenkins' job configuration
 
 5. Jenkins to private GitHub repo:
-   a. With token
-
+a. With token
 - Create a PAT token on GitHub -> add in Jenkins' system credentials
 - Add Git credentials in job config that connects to private repo
-  b. With ssh key pair
+  
+b. With ssh key pair
 - Generate key pair from EC2 -> add the public to GitHub -> add private to Jenkins global credentials
 - Update verification config on Jenkins sv
 - Edit Jenkins job with ssh values
