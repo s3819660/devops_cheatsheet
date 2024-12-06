@@ -15,7 +15,10 @@ git log --graph --decorate --oneline    # Check the compact (shorter) version of
 # After initializing local repo, connect the remote one
 git remote add origin https://github.com/your_github_name/your_git_repo_name.git
 
+
 git push -u origin main     # Push changes from local -> GitHub
+git push --set-upstream origin branch1        # release and push new branch
+
 
 git reset --hard <commit>   # Reverts code back to a previous target commit (for local)
 git revert branch           # use for remote
@@ -30,3 +33,13 @@ git checkout HEAD~3     # move HEAD up to 3 previous commits
 git checkout main^      # checkout the commit above
 
 git branch -f main HEAD~3/commit       # move the current code to previous 3 commits version
+
+
+
+# resolve conflicts (merge)
+git pull origin main --no-rebase
+nano FILENAME           # edit the conflict file
+git add FILENAME
+git commit -m "Resolve conflict between A and B"
+git push
+git log --oneline --graph --all         # (optional) check log

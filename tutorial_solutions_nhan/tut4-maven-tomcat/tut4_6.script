@@ -1,6 +1,6 @@
 #!/bin/bash
 
-yum install java-17-amazon-corretto
+yum install java-17-amazon-corretto -y
 java -version
 
 cd /opt
@@ -28,9 +28,9 @@ cd tomcat/bin
 # insert comment signs before the found pattern
 # use /i\ for insert, /a\ for append
 sed -i '/<Valve className="org.apache.catalina.valves.RemoteAddrValve/i\<!--' /opt/tomcat/webapps/host-manager/META-INF/context.xml
-sed -i '/<Manager/i\—>' /opt/tomcat/webapps/host-manager/META-INF/context.xml
+sed -i '/<Manager/i\-->' /opt/tomcat/webapps/host-manager/META-INF/context.xml
 sed -i '/<Valve className="org.apache.catalina.valves.RemoteAddrValve/i\<!--' /opt/tomcat/webapps/manager/META-INF/context.xml
-sed -i '/<Manager/i\—>' /opt/tomcat/webapps/manager/META-INF/context.xml
+sed -i '/<Manager/i\-->' /opt/tomcat/webapps/manager/META-INF/context.xml
 
 # add text into a new temporary file
 echo '<role rolename="admin-gui"/>
@@ -41,6 +41,7 @@ echo '<role rolename="admin-gui"/>
 <user username="admin" password="s3cret" roles="admin-gui,manager-gui,manager-script,manager-jmx,manager-status"/>' > /tmp/new_content.xml
 
 # then add text from the new temp file into the tomcat-users.xml
+# read the contents of the file /tmp/new_content.xml and insert it after the matched line
 sed -i '/version="1.0">/r /tmp/new_content.xml' /opt/tomcat/conf/tomcat-users.xml
 
 ln -s /opt/tomcat/bin/startup.sh /usr/local/bin/tomcatup
@@ -57,8 +58,16 @@ sed -i '/<\/h2>/a\<h3>DevOps at RMIT<\/h3>' ~/helloWorld/src/main/webapp/index.j
 mvn package
 cp /root/helloWorld/target/helloWorld.war /opt/tomcat/webapps/
 
+# configure to run on port 80
 # potentially work after rebooting the server
 sed -i 's/8080/80/g' /opt/tomcat/conf/server.xml
 
 tomcatdown
 tomcatup
+
+
+
+# optional
+
+# delete a line that contains the pattern
+sed '/pattern_to_match/d' filename
