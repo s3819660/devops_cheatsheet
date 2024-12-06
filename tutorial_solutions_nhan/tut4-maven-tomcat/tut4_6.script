@@ -53,7 +53,7 @@ mvn archetype:generate -DgroupId=vn.edu.rmit -DartifactId=helloWorld -Darchetype
 cd helloWorld/
 
 # may use " \ " to avoid error
-sed -i ‘/<\/h2>/a\<h3>DevOps at RMIT<\/h3>' ~/helloWorld/src/main/webapp/index.jsp
+sed -i '/<\/h2>/a\<h3>DevOps at RMIT<\/h3>' ~/helloWorld/src/main/webapp/index.jsp
 mvn package
 cp /root/helloWorld/target/helloWorld.war /opt/tomcat/webapps/
 
