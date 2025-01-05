@@ -1,0 +1,12 @@
+---
+- hosts: ansibleserver
+
+  tasks:
+  - name: create docker image
+    command: docker build -t frontend:latest /var/lib/jenkins/workspace/BuildAndPushImage/client
+
+  - name: create tag to push the image to dockerhub
+    command: docker tag frontend:latest benhuhaudau/test-rmit-store:latest
+
+  - name: push the docker image to dockerhub
+    command: docker push benhuhaudau/test-rmit-store:latest
