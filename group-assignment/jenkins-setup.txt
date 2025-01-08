@@ -1,0 +1,6 @@
+Plugins:
+- NodeJS
+- Pipeline
+- Docker Pipeline
+- Cleanup Workspace
+- Github
