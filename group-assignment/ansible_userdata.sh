@@ -43,6 +43,9 @@ systemctl restart sshd
 # Give Jenkins permissions to write to /etc/ansible/hosts
 echo '[defaults]
 host_key_checking = False' > /etc/ansible/ansible.cfg # Disable host key checking
+if [ ! -f /etc/ansible/hosts ]; then
+    sudo touch /etc/ansible/hosts
+fi
 chmod o+w /etc/ansible/hosts
 echo "jenkins ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers # Given Jenkins sudo permissions
 # Generate ssh key for ansibleadmin

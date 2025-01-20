@@ -4,3 +4,11 @@ Plugins:
 - Docker Pipeline
 - Cleanup Workspace
 - Github
+- Pipeline Utility Steps
+
+Roles:
+- EC2 -> security -> IAM roles -> add EC2InstanceProfile
+
+Change URL:
+- .env.development: MONGO_URI
+- auth.test.js: const url = `mongodb://
